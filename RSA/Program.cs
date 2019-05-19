@@ -11,28 +11,39 @@ namespace RSA
         private static bool modszer;
 
         private static Random rn = new Random();
+        private static bool exit = true;
 
         static void Main(string[] args)
         {
-            Console.WriteLine("Petrik Dávid RSA");
-            Console.WriteLine();
 
-            Console.WriteLine("RSA kódolás/visszafejtés? (kod/vissza)");
-            string temp = Console.ReadLine();
-            if (temp == "kod")
-                modszer = true;
-            else if (temp == "vissza")
-                modszer = false;
+            while(exit)
+            {
+                //Console.Clear();
+                Console.WriteLine("Petrik Dávid RSA");
+                Console.WriteLine();
 
-            Console.WriteLine(SearchForPrime(0,156412312344541));
+                /*Console.WriteLine("RSA kódolás/visszafejtés? (kod/vissza)");
+                string temp = Console.ReadLine();
+                if (temp == "kod")
+                    modszer = true;
+                else if (temp == "vissza")
+                    modszer = false;*/
 
-            Console.WriteLine("Hány bites legyen a szám? 2^(beírandó szám)");
-            int bitS = Convert.ToInt32(Console.ReadLine());
-            Console.WriteLine("Mi legyen a titkosítandó üzenet?");
-            int mes = Convert.ToInt32(Console.ReadLine());
-            RSA(bitS,mes);
+                //Console.WriteLine(SearchForPrime(0, 156412312344541));
 
-            Console.ReadKey(true);
+                Console.WriteLine("Hány bites legyen a szám? 2^(beírandó szám)");
+                int bitS = Convert.ToInt32(Console.ReadLine());
+                Console.WriteLine("Mi legyen a titkosítandó üzenet?");
+                int mes = Convert.ToInt32(Console.ReadLine());
+                RSA(bitS, mes);
+
+                Console.WriteLine("Újra? (y)");
+                string str = Console.ReadLine();
+                if (str != "y")
+                    exit = false;
+
+            }
+            
 
         }
 
@@ -43,6 +54,7 @@ namespace RSA
             
             (var n, var e, var d, var p, var q) = GenerateRSAKeys(keySize);
             BigInteger c = Gyorshatvanyoz(m, e, n);
+            Console.WriteLine(c + " a titkosított üzenet.");
             //BigInteger mfejt = Gyorshatvanyoz(c, d, n);
 
             BigInteger[] cs = new[] { Gyorshatvanyoz(c, d % (p - 1), p), Gyorshatvanyoz(c, d % (q - 1), q) };
@@ -50,7 +62,7 @@ namespace RSA
 
             BigInteger mfejt = KinaiMaradekTetel(ms, cs);
 
-            Console.WriteLine(mfejt);
+            Console.WriteLine(mfejt + " a visszafejtett kulcs.");
         }
 
         private static (BigInteger n, BigInteger e, BigInteger d, BigInteger p, BigInteger q) GenerateRSAKeys(int bitSize)
@@ -67,11 +79,12 @@ namespace RSA
             }
             while (q.Equals(p)); //Ne egyezzen meg a 2 prím
             
+            
             BigInteger n = p * q;
             //BigInteger fin = ((p - 1) / EuklidesziAlgoritmus(p - 1, q - 1)) * (q - 1);
             BigInteger fin = (p - 1) * (q - 1);
 
-            Console.WriteLine("A 2 prímszám: p = {0}, q={1} és n = {2}", p, q,n);
+            Console.WriteLine("A 2 prímszám: p = {0}, q={1} és n = {2}, lnko: {3}", p, q,n, EuklidesziAlgoritmus(p, q));
             
             BigInteger e;
             do
@@ -82,8 +95,8 @@ namespace RSA
 
             (var lnko, var x, var y) = KiterjesztettEuklidesziAlgoritmus(fin, e);
             BigInteger d = y;
-            /*if (d < 0)
-                d += fin;*/
+            if (d < 0)
+                d += fin;
 
             return (n, e, d, p, q);
         }
@@ -93,7 +106,7 @@ namespace RSA
             while (true)
             {
                 var n = BigRandom(min, max);
-                if (MillerRabinTeszt(n))
+                if (MillerRabinTeszt(n) && FermatTeszt(n))
                 {
                     return n;
                 }
